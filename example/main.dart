@@ -15,7 +15,8 @@ main() async {
   );
 
   // Enable Jinja2 views
-  await app.configure(jinja(path: viewsDir));
+  Loader createLoader() => FileSystemLoader(autoReload: true, path: viewsDir);
+  await app.configure(jinja(createLoader: createLoader));
 
   // Add routes.
   // See: https://github.com/ykmnkmi/jinja.dart/blob/master/example/bin/server.dart

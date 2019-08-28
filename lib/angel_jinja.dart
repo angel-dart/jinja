@@ -1,5 +1,9 @@
 import 'package:angel_framework/angel_framework.dart';
 import 'package:jinja/jinja.dart';
+import 'package:jinja/src/undefined.dart';
+import 'package:jinja/src/parser.dart' show ParserCallback;
+
+export 'package:jinja/src/loaders.dart';
 
 /// Configures an Angel server to use Jinja2 to render templates.
 ///
@@ -9,45 +13,43 @@ import 'package:jinja/jinja.dart';
 /// All options other than [createLoader] are passed to either [FileSystemLoader]
 /// or [Environment].
 AngelConfigurer jinja({
-  Iterable<String> ext = const ['html'],
-  String path = 'lib/src/templates',
-  bool followLinks = true,
-  String stmtOpen = '{%',
-  String stmtClose = '%}',
-  String varOpen = '{{',
-  String varClose = '}}',
-  String commentOpen = '{#',
-  String commentClose = '#}',
-  defaultValue,
-  bool autoReload = true,
+  String blockStart = '{%',
+  String blockEnd = '%}',
+  String variableStart = '{{',
+  String variableEnd = '}}',
+  String commentStart = '{#',
+  String commentEnd = '#}',
+  bool autoEscape = false,
+  bool trimBlocks = false,
+  bool leftStripBlocks = false,
+  Loader Function() createLoader,
+  bool optimize = true,
+  Map<String, ParserCallback> extensions = const <String, ParserCallback>{},
+  Map<String, Object> globals = const <String, Object>{},
   Map<String, Function> filters = const <String, Function>{},
   Map<String, Function> tests = const <String, Function>{},
-  Loader Function() createLoader,
 }) {
   return (app) {
     createLoader ??= () {
-      return FileSystemLoader(
-        ext: ext.toList(),
-        path: path,
-        followLinks: followLinks,
-      );
+      return FileSystemLoader();
     };
     var env = Environment(
+      blockStart: blockStart,
+      blockEnd: blockEnd,
+      variableStart: variableStart,
+      variableEnd: variableEnd,
+      commentStart: commentStart,
+      commentEnd: commentEnd,
+      optimize: optimize,
       loader: createLoader(),
-      stmtOpen: stmtOpen,
-      stmtClose: stmtClose,
-      varOpen: varOpen,
-      varClose: varClose,
-      commentOpen: commentOpen,
-      commentClose: commentClose,
-      defaultValue: defaultValue,
-      autoReload: autoReload,
+      extensions: extensions,
+      globals: globals,
       filters: filters,
       tests: tests,
     );
 
     app.viewGenerator = (path, [values]) {
-      return env.getTemplate(path).render(values);
+      return env.getTemplate(path).renderMap(values);
     };
   };
 }
