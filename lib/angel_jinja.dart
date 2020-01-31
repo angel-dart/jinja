@@ -1,7 +1,5 @@
 import 'package:angel_framework/angel_framework.dart';
 import 'package:jinja/jinja.dart';
-import 'package:jinja/src/undefined.dart';
-import 'package:jinja/src/parser.dart' show ParserCallback;
 
 export 'package:jinja/src/loaders.dart';
 
@@ -19,15 +17,19 @@ AngelConfigurer jinja({
   String variableEnd = '}}',
   String commentStart = '{#',
   String commentEnd = '#}',
-  bool autoEscape = false,
   bool trimBlocks = false,
   bool leftStripBlocks = false,
-  Loader Function() createLoader,
+  bool keepTrailingNewLine = false,
   bool optimize = true,
-  Map<String, ParserCallback> extensions = const <String, ParserCallback>{},
-  Map<String, Object> globals = const <String, Object>{},
+  Finalizer finalize = defaultFinalizer,
+  bool autoEscape = false,
+  Loader Function() createLoader,
   Map<String, Function> filters = const <String, Function>{},
+  Map<String, Function> envFilters = const <String, Function>{},
   Map<String, Function> tests = const <String, Function>{},
+  Map<String, Object> globals = const <String, Object>{},
+  FieldGetter getField = defaultFieldGetter,
+  ItemGetter getItem = defaultItemGetter,
 }) {
   return (app) {
     createLoader ??= () {
@@ -40,12 +42,19 @@ AngelConfigurer jinja({
       variableEnd: variableEnd,
       commentStart: commentStart,
       commentEnd: commentEnd,
+      trimBlocks: trimBlocks,
+      leftStripBlocks: leftStripBlocks,
+      keepTrailingNewLine: keepTrailingNewLine,
       optimize: optimize,
+      finalize: finalize,
+      autoEscape: autoEscape,
       loader: createLoader(),
-      extensions: extensions,
-      globals: globals,
       filters: filters,
+      envFilters: envFilters,
       tests: tests,
+      globals: globals,
+      getField: getField,
+      getItem: getItem,
     );
 
     app.viewGenerator = (path, [values]) {
